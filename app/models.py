@@ -1,22 +1,34 @@
 from datetime import datetime
 from app import db
 
-class User(db.Model):
+class Celebrity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    name = db.Column(db.String(20), unique=True, nullable=False)
+    reads = db.relationship('Book', secondary='celebrity_reads', backref='celebrity', lazy='dynamic')
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return f'{self.name}'
 
-class Post(db.Model):
+class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    title = db.Column(db.String(200), nullable=False)
+    subtitle = db.Column(db.String(200))
+    imageLink =  db.Column(db.String(400))
+    googleid = db.Column(db.String(20), unique=True)
+    # author = db.Column(db.String(120), unique=True, nullable=False)
+    isbn = db.Column(db.String(13))
+    authors = db.relationship('Author', secondary='author_book', backref='books')
 
-    def __repr__(self):
-        return '<Post {}>'.format(self.body)
+class Author(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
 
+AuthorBook = db.Table('author_book',
+    db.Column('book_id', db.Integer, db.ForeignKey('book.id')),
+    db.Column('author_id', db.Integer, db.ForeignKey('author.id'))
+)
+
+CelebrityReads = db.Table('celebrity_reads',
+    db.Column('celebrity_id', db.Integer, db.ForeignKey('celebrity.id')),
+    db.Column('book_id', db.Integer, db.ForeignKey('book.id'))
+)
